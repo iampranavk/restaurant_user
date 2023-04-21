@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:restaurant_user/ui/screens/homescreen_sections/cart_screen.dart';
+import 'package:restaurant_user/ui/screens/homescreen_sections/orders_screen.dart';
 import 'package:restaurant_user/ui/screens/login_screen.dart';
 import 'package:restaurant_user/ui/screens/suggestion_screen.dart';
-import 'package:restaurant_user/ui/widget/add_suggestion_dialog.dart';
 import 'package:restaurant_user/ui/widget/change_password_dialog.dart';
 import 'package:restaurant_user/ui/widget/custom_card.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -47,13 +46,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   },
                 ),
                 SettingsCard(
-                  icon: Icons.shopping_bag_outlined,
-                  label: 'My Cart',
+                  icon: Icons.category_outlined,
+                  label: 'My Orders',
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const CartScreen(),
+                        builder: (context) => const OrdersScreen(),
                       ),
                     );
                   },

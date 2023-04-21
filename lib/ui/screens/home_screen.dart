@@ -4,7 +4,6 @@ import 'package:restaurant_user/ui/screens/homescreen_sections/cart_screen.dart'
 import 'package:restaurant_user/ui/screens/homescreen_sections/favourites_screen.dart';
 import 'package:restaurant_user/ui/screens/homescreen_sections/food_screen.dart';
 import 'package:restaurant_user/ui/screens/homescreen_sections/meal_planer_screen.dart';
-import 'package:restaurant_user/ui/screens/homescreen_sections/orders_screen.dart';
 import 'package:restaurant_user/ui/screens/homescreen_sections/settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -71,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen>
           children: const [
             FoodScreen(),
             MealPlannerScreen(),
-            OrdersScreen(),
+            CartScreen(),
             SettingsScreen(),
           ],
         ),
@@ -107,12 +106,12 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
                 NavBarItem(
                   isSelected: _controller.index == 2,
-                  icon: Icons.category,
+                  icon: Icons.shopping_bag_outlined,
                   onTap: () {
                     _controller.animateTo(2);
                     setState(() {});
                   },
-                  label: 'Order',
+                  label: 'Cart',
                 ),
                 NavBarItem(
                   isSelected: _controller.index == 3,

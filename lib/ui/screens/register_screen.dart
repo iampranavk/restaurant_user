@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:restaurant_user/blocs/auth/sign_in/sign_in_bloc.dart';
 import 'package:restaurant_user/blocs/auth/sign_up/sign_up_bloc.dart';
 import 'package:restaurant_user/ui/screens/home_screen.dart';
 import 'package:restaurant_user/ui/widget/custom_alert_dialog.dart';
