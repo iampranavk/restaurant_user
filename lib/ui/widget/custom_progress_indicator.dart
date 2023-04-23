@@ -9,10 +9,15 @@ class CustomProgressIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CircularProgressIndicator(
-      color: color ?? Colors.pink,
-      backgroundColor:
-          color != null ? color!.withOpacity(0.1) : Colors.pink[50],
+    return SizedBox(
+      height: 20,
+      width: 20,
+      child: CircularProgressIndicator(
+        color: color ?? Colors.green,
+        strokeWidth: 2,
+        backgroundColor:
+            color != null ? color!.withOpacity(0.1) : Colors.green[50],
+      ),
     );
   }
 }

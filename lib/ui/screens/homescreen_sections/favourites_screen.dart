@@ -55,15 +55,8 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 children: List<Widget>.generate(
                   10,
-                  (index) => ListingCard(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const FoodDetailsScreen(),
-                        ),
-                      );
-                    },
+                  (index) => const ListingCard(
+                    foodDetails: {},
                   ),
                 ),
               ),

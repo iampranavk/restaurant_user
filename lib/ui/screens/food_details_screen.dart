@@ -1,8 +1,12 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:restaurant_user/ui/widget/custom_button.dart';
+import 'package:restaurant_user/ui/widget/custom_progress_indicator.dart';
 
 class FoodDetailsScreen extends StatelessWidget {
-  const FoodDetailsScreen({Key? key}) : super(key: key);
+  final Map<String, dynamic> foodDetails;
+  const FoodDetailsScreen({Key? key, required this.foodDetails})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +47,7 @@ class FoodDetailsScreen extends StatelessWidget {
                       height: 70,
                     ),
                     Text(
-                      "Pizza",
+                      foodDetails['name'],
                       style:
                           Theme.of(context).textTheme.headlineMedium!.copyWith(
                                 color: Colors.black,
@@ -56,7 +60,7 @@ class FoodDetailsScreen extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          '₹20000',
+                          '₹${foodDetails['discounted_price'].toString()}',
                           style:
                               Theme.of(context).textTheme.titleMedium!.copyWith(
                                     color: Colors.red,
@@ -68,7 +72,7 @@ class FoodDetailsScreen extends StatelessWidget {
                           width: 20,
                         ),
                         Text(
-                          '₹15000',
+                          '₹${foodDetails['price'].toString()}',
                           style:
                               Theme.of(context).textTheme.titleLarge!.copyWith(
                                     color: Colors.green[700],
@@ -88,7 +92,7 @@ class FoodDetailsScreen extends StatelessWidget {
                           size: 25,
                         ),
                         Text(
-                          " 20 min",
+                          "${foodDetails['time'].toString()} min",
                           style:
                               Theme.of(context).textTheme.titleMedium!.copyWith(
                                     color: Colors.grey[700],
@@ -104,7 +108,7 @@ class FoodDetailsScreen extends StatelessWidget {
                           size: 25,
                         ),
                         Text(
-                          "120kcal",
+                          '${foodDetails['calories']} kcal',
                           style:
                               Theme.of(context).textTheme.titleMedium!.copyWith(
                                     color: Colors.grey[700],
@@ -117,7 +121,7 @@ class FoodDetailsScreen extends StatelessWidget {
                       height: 10,
                     ),
                     Text(
-                      'Pizza is an Italian food that was created in Italy (The Naples area). It is made with different toppings. Some of the most common toppings are cheese, sausages, pepperoni, vegetables, tomatoes, spices and herbs and basil. These toppings are added over a piece of bread covered with sauce.',
+                      foodDetails['description'],
                       style: Theme.of(context).textTheme.titleSmall!.copyWith(
                             color: Colors.grey[700],
                             fontWeight: FontWeight.w500,
@@ -145,11 +149,15 @@ class FoodDetailsScreen extends StatelessWidget {
                 EdgeInsets.only(top: MediaQuery.of(context).size.height / 7.5),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(200),
-              child: Image.network(
-                "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=481&q=80",
-                fit: BoxFit.fill,
+              child: CachedNetworkImage(
+                imageUrl: foodDetails['image_url'],
+                fit: BoxFit.cover,
                 height: 250,
                 width: 250,
+                progressIndicatorBuilder: (context, url, progress) =>
+                    const Center(
+                  child: CustomProgressIndicator(),
+                ),
               ),
             ),
           ),
