@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:logger/logger.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:restaurant_user/blocs/manage_cart/manage_cart_bloc.dart';
+import 'package:restaurant_user/blocs/manage_orders/manage_orders_bloc.dart';
 import 'package:restaurant_user/ui/widget/counter.dart';
 import 'package:restaurant_user/ui/widget/custom_alert_dialog.dart';
 import 'package:restaurant_user/ui/widget/custom_progress_indicator.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../widget/custom_button.dart';
 import '../../widget/custom_card.dart';
@@ -18,12 +22,66 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> {
   final ManageCartBloc manageCartBloc = ManageCartBloc();
-  int selectedTableId = 0;
+  final ManageOrdersBloc manageOrdersBloc = ManageOrdersBloc();
+  int selectedTableId = 0, total = 0;
+
+  final Razorpay _razorpay = Razorpay();
+
+  void _handlePaymentSuccess(PaymentSuccessResponse response) async {
+    await showDialog(
+      context: context,
+      builder: (context) => const CustomAlertDialog(
+        title: 'Payment Success',
+        message:
+            'Thank you for the payment, you can see your orders in the orders sections',
+        primaryButtonLabel: 'Ok',
+      ),
+    );
+
+    manageOrdersBloc.add(CreateOrdersEvent(tableId: selectedTableId));
+  }
+
+  void _handlePaymentError(PaymentFailureResponse response) {
+    // Logger().e(response.error);
+    showDialog(
+      context: context,
+      builder: (context) => CustomAlertDialog(
+        title: 'Payment Failed',
+        message: response.message ?? 'Something went wrong, Please try again',
+        primaryButtonLabel: 'Ok',
+      ),
+    );
+  }
+
+  void _handleExternalWallet(ExternalWalletResponse response) {
+    // Do something when an external wallet was selected
+  }
+
+  void makePayment() async {
+    // String orderId = await createOrder(widget.testDetails['total_price']);
+
+    var options = {
+      'key': 'rzp_test_j07YpjyCexi5xr',
+      'amount': total * 100,
+      'name': 'Resto',
+      // 'order_id': orderId,
+      'description': 'Order',
+      'prefill': {
+        'contact': '9999999999',
+        'email': Supabase.instance.client.auth.currentUser!.email,
+      }
+    };
+    Logger().w(options);
+    _razorpay.open(options);
+  }
 
   @override
   void initState() {
     super.initState();
     manageCartBloc.add(GetAllManageCartEvent());
+    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
+    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
+    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
   }
 
   @override
@@ -31,157 +89,203 @@ class _CartScreenState extends State<CartScreen> {
     return SafeArea(
       child: BlocProvider<ManageCartBloc>.value(
         value: manageCartBloc,
-        child: BlocConsumer<ManageCartBloc, ManageCartState>(
-          listener: (context, state) {
-            if (state is ManageCartFailureState) {
-              showDialog(
-                context: context,
-                builder: (context) => CustomAlertDialog(
-                  title: 'Failure',
-                  message: state.message,
-                  primaryButtonLabel: 'Try Again',
-                  primaryOnPressed: () {
-                    manageCartBloc.add(GetAllManageCartEvent());
-                  },
-                ),
-              );
-            }
-          },
-          builder: (context, state) {
-            return state is ManageCartSuccessState
-                ? state.cartItems.isNotEmpty
-                    ? Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Expanded(
-                            child: ListView.separated(
-                              padding: const EdgeInsets.only(
-                                left: 15,
-                                right: 15,
-                                bottom: 50,
-                                top: 20,
-                              ),
-                              shrinkWrap: true,
-                              itemCount: state.cartItems.length,
-                              separatorBuilder:
-                                  (BuildContext context, int index) =>
-                                      const Divider(),
-                              itemBuilder: (BuildContext context, int index) {
-                                return ShopItem(
-                                  cartItemDetails: state.cartItems[index],
-                                  manageCartBloc: manageCartBloc,
-                                );
+        child: BlocProvider<ManageOrdersBloc>.value(
+          value: manageOrdersBloc,
+          child: BlocConsumer<ManageOrdersBloc, ManageOrdersState>(
+            listener: (context, orderState) {
+              if (orderState is ManageOrdersFailureState) {
+                showDialog(
+                  context: context,
+                  builder: (context) => CustomAlertDialog(
+                    title: 'Failure',
+                    message: orderState.message,
+                    primaryButtonLabel: 'Try Again',
+                    primaryOnPressed: () {},
+                  ),
+                );
+
+                manageCartBloc.add(GetAllManageCartEvent());
+              } else if (orderState is ManageOrdersSuccessState) {
+                manageCartBloc.add(GetAllManageCartEvent());
+              }
+            },
+            builder: (context, orderState) {
+              return orderState is ManageOrdersLoadingState
+                  ? const Center(child: CustomProgressIndicator())
+                  : BlocConsumer<ManageCartBloc, ManageCartState>(
+                      listener: (context, state) {
+                        if (state is ManageCartFailureState) {
+                          showDialog(
+                            context: context,
+                            builder: (context) => CustomAlertDialog(
+                              title: 'Failure',
+                              message: state.message,
+                              primaryButtonLabel: 'Try Again',
+                              primaryOnPressed: () {
+                                manageCartBloc.add(GetAllManageCartEvent());
                               },
                             ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(
-                              bottom: 10,
-                              top: 10,
-                              left: 20,
-                              right: 20,
-                            ),
-                            child: Material(
-                              color: Colors.white,
-                              elevation: 2,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                  vertical: 20,
-                                ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            "Total Price",
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .titleMedium!
-                                                .copyWith(
-                                                  color: Colors.black,
-                                                  fontWeight: FontWeight.normal,
-                                                ),
+                          );
+                        } else if (state is ManageCartSuccessState) {
+                          total = state.total;
+                        }
+                      },
+                      builder: (context, state) {
+                        return state is ManageCartSuccessState
+                            ? state.cartItems.isNotEmpty
+                                ? Column(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      Expanded(
+                                        child: ListView.separated(
+                                          padding: const EdgeInsets.only(
+                                            left: 15,
+                                            right: 15,
+                                            bottom: 50,
+                                            top: 20,
                                           ),
-                                          const SizedBox(
-                                            height: 3,
-                                          ),
-                                          Text(
-                                            "₹${state.total.toString()}",
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .titleLarge!
-                                                .copyWith(
-                                                  color: Colors.black,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                          ),
-                                        ],
+                                          shrinkWrap: true,
+                                          itemCount: state.cartItems.length,
+                                          separatorBuilder:
+                                              (BuildContext context,
+                                                      int index) =>
+                                                  const Divider(),
+                                          itemBuilder: (BuildContext context,
+                                              int index) {
+                                            return ShopItem(
+                                              cartItemDetails:
+                                                  state.cartItems[index],
+                                              manageCartBloc: manageCartBloc,
+                                            );
+                                          },
+                                        ),
                                       ),
-                                    ),
-                                    Expanded(
-                                      child: CustomButton(
-                                        buttonColor: Colors.green[800],
-                                        labelColor: Colors.white,
-                                        label: 'Place Order',
-                                        onTap: () {
-                                          showDialog(
-                                            context: context,
-                                            builder: (context) =>
-                                                CustomAlertDialog(
-                                              title: 'Select Table',
-                                              message:
-                                                  'Select the table youre sitting in',
-                                              content: Column(
-                                                children: [
-                                                  Icon(
-                                                    Icons.table_bar,
-                                                    size: 150,
-                                                    color: Colors.green[900],
-                                                  ),
-                                                  const SizedBox(height: 20),
-                                                  Row(
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          bottom: 10,
+                                          top: 10,
+                                          left: 20,
+                                          right: 20,
+                                        ),
+                                        child: Material(
+                                          color: Colors.white,
+                                          elevation: 2,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                          ),
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 20,
+                                              vertical: 20,
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
                                                     children: [
-                                                      Expanded(
-                                                        child: TableSelector(
-                                                          label: 'Table',
-                                                          onSelect: (id) {
-                                                            selectedTableId =
-                                                                id;
-                                                            Navigator.pop(
-                                                                context);
-                                                          },
-                                                        ),
+                                                      Text(
+                                                        "Total Price",
+                                                        style: Theme.of(context)
+                                                            .textTheme
+                                                            .titleMedium!
+                                                            .copyWith(
+                                                              color:
+                                                                  Colors.black,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .normal,
+                                                            ),
+                                                      ),
+                                                      const SizedBox(
+                                                        height: 3,
+                                                      ),
+                                                      Text(
+                                                        "₹${state.total.toString()}",
+                                                        style: Theme.of(context)
+                                                            .textTheme
+                                                            .titleLarge!
+                                                            .copyWith(
+                                                              color:
+                                                                  Colors.black,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w500,
+                                                            ),
                                                       ),
                                                     ],
                                                   ),
-                                                ],
-                                              ),
-                                            ),
-                                          );
+                                                ),
+                                                Expanded(
+                                                  child: CustomButton(
+                                                    buttonColor:
+                                                        Colors.green[800],
+                                                    labelColor: Colors.white,
+                                                    label: 'Place Order',
+                                                    onTap: () async {
+                                                      await showDialog(
+                                                        context: context,
+                                                        builder: (context) =>
+                                                            CustomAlertDialog(
+                                                          title: 'Select Table',
+                                                          message:
+                                                              'Select the table youre sitting in',
+                                                          content: Column(
+                                                            children: [
+                                                              Icon(
+                                                                Icons.table_bar,
+                                                                size: 150,
+                                                                color: Colors
+                                                                    .green[900],
+                                                              ),
+                                                              const SizedBox(
+                                                                  height: 20),
+                                                              Row(
+                                                                children: [
+                                                                  Expanded(
+                                                                    child:
+                                                                        TableSelector(
+                                                                      label:
+                                                                          'Table',
+                                                                      onSelect:
+                                                                          (id) {
+                                                                        selectedTableId =
+                                                                            id;
+                                                                        Navigator.pop(
+                                                                            context);
+                                                                      },
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      );
 
-                                          if (selectedTableId != 0) {
-                                            // make payment
-                                          }
-                                        },
+                                                      if (selectedTableId !=
+                                                          0) {
+                                                        makePayment();
+                                                      }
+                                                    },
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      )
-                    : const Center(child: Text('No Items'))
-                : const Center(child: CustomProgressIndicator());
-          },
+                                    ],
+                                  )
+                                : const Center(child: Text('No Items'))
+                            : const Center(child: CustomProgressIndicator());
+                      },
+                    );
+            },
+          ),
         ),
       ),
     );
