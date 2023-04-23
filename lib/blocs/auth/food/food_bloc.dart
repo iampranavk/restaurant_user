@@ -29,6 +29,24 @@ class FoodBloc extends Bloc<FoodEvent, FoodState> {
                 .eq('food_category_id', event.categoryId)
                 .eq('food_type_id', event.typeId)
                 .order('name', ascending: true);
+          } else if (event.query != null && event.categoryId != null) {
+            temp = await queryTable
+                .select('*')
+                .ilike('name', '%${event.query}%')
+                .eq('food_category_id', event.categoryId)
+                .order('name', ascending: true);
+          } else if (event.query != null && event.typeId != null) {
+            temp = await queryTable
+                .select('*')
+                .ilike('name', '%${event.query}%')
+                .eq('food_type_id', event.typeId)
+                .order('name', ascending: true);
+          } else if (event.categoryId != null && event.typeId != null) {
+            temp = await queryTable
+                .select('*')
+                .eq('food_category_id', event.categoryId)
+                .eq('food_type_id', event.typeId)
+                .order('name', ascending: true);
           } else if (event.query != null) {
             temp = await queryTable
                 .select('*')

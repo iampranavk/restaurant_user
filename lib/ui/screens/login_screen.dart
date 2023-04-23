@@ -7,6 +7,7 @@ import 'package:restaurant_user/ui/widget/custom_alert_dialog.dart';
 import 'package:restaurant_user/ui/widget/custom_button.dart';
 import 'package:restaurant_user/ui/widget/custom_input_form_field.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:restaurant_user/util/value_validators.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -139,14 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 controller: _emailController,
                                 prefixIcon: Icons.email,
                                 labelText: 'Email',
-                                validator: (value) {
-                                  if (value != null &&
-                                      value.trim().isNotEmpty) {
-                                    return null;
-                                  } else {
-                                    return "Please enter an email";
-                                  }
-                                },
+                                validator: emailValidator,
                               ),
                               const SizedBox(
                                 height: 10,

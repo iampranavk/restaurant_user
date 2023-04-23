@@ -42,26 +42,6 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
           ),
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(
-              right: 10,
-            ),
-            child: IconButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const FavouritesScreen(),
-                  ),
-                );
-              },
-              icon: Icon(
-                Icons.favorite,
-                color: Colors.green[900]!,
-              ),
-            ),
-          ),
-        ],
       ),
       body: SafeArea(
         child: TabBarView(

@@ -169,8 +169,8 @@ class _FoodScreenState extends State<FoodScreen> {
                       );
                     },
                   ),
-                  const SizedBox(
-                    height: 10,
+                  const Divider(
+                    height: 20,
                   ),
                   FoodTypeSelector(
                     onSelect: (id) {

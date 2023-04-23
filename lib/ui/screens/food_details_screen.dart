@@ -1,13 +1,22 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:restaurant_user/blocs/manage_cart/manage_cart_bloc.dart';
+import 'package:restaurant_user/ui/widget/counter.dart';
+import 'package:restaurant_user/ui/widget/custom_alert_dialog.dart';
 import 'package:restaurant_user/ui/widget/custom_button.dart';
 import 'package:restaurant_user/ui/widget/custom_progress_indicator.dart';
 
-class FoodDetailsScreen extends StatelessWidget {
+class FoodDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> foodDetails;
   const FoodDetailsScreen({Key? key, required this.foodDetails})
       : super(key: key);
 
+  @override
+  State<FoodDetailsScreen> createState() => _FoodDetailsScreenState();
+}
+
+class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
+  int quantity = 1;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -47,7 +56,7 @@ class FoodDetailsScreen extends StatelessWidget {
                       height: 70,
                     ),
                     Text(
-                      foodDetails['name'],
+                      widget.foodDetails['name'],
                       style:
                           Theme.of(context).textTheme.headlineMedium!.copyWith(
                                 color: Colors.black,
@@ -60,7 +69,7 @@ class FoodDetailsScreen extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          '₹${foodDetails['discounted_price'].toString()}',
+                          '₹${widget.foodDetails['discounted_price'].toString()}',
                           style:
                               Theme.of(context).textTheme.titleMedium!.copyWith(
                                     color: Colors.red,
@@ -72,7 +81,7 @@ class FoodDetailsScreen extends StatelessWidget {
                           width: 20,
                         ),
                         Text(
-                          '₹${foodDetails['price'].toString()}',
+                          '₹${widget.foodDetails['price'].toString()}',
                           style:
                               Theme.of(context).textTheme.titleLarge!.copyWith(
                                     color: Colors.green[700],
@@ -91,8 +100,11 @@ class FoodDetailsScreen extends StatelessWidget {
                           color: Colors.yellow[700]!,
                           size: 25,
                         ),
+                        const SizedBox(
+                          width: 2.5,
+                        ),
                         Text(
-                          "${foodDetails['time'].toString()} min",
+                          "${widget.foodDetails['time'].toString()} min",
                           style:
                               Theme.of(context).textTheme.titleMedium!.copyWith(
                                     color: Colors.grey[700],
@@ -107,8 +119,30 @@ class FoodDetailsScreen extends StatelessWidget {
                           color: Colors.red[700],
                           size: 25,
                         ),
+                        const SizedBox(
+                          width: 2.5,
+                        ),
                         Text(
-                          '${foodDetails['calories']} kcal',
+                          '${widget.foodDetails['calories']} kcal',
+                          style:
+                              Theme.of(context).textTheme.titleMedium!.copyWith(
+                                    color: Colors.grey[700],
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                        ),
+                        const SizedBox(
+                          width: 15,
+                        ),
+                        Icon(
+                          Icons.people,
+                          color: Colors.green[700],
+                          size: 25,
+                        ),
+                        const SizedBox(
+                          width: 2.5,
+                        ),
+                        Text(
+                          '${widget.foodDetails['serves_count'].toString()} serves',
                           style:
                               Theme.of(context).textTheme.titleMedium!.copyWith(
                                     color: Colors.grey[700],
@@ -121,7 +155,7 @@ class FoodDetailsScreen extends StatelessWidget {
                       height: 10,
                     ),
                     Text(
-                      foodDetails['description'],
+                      widget.foodDetails['description'],
                       style: Theme.of(context).textTheme.titleSmall!.copyWith(
                             color: Colors.grey[700],
                             fontWeight: FontWeight.w500,
@@ -130,11 +164,49 @@ class FoodDetailsScreen extends StatelessWidget {
                     const SizedBox(
                       height: 20,
                     ),
-                    CustomButton(
-                      buttonColor: Colors.green[800],
-                      labelColor: Colors.white,
-                      label: "Add to Cart",
-                      onTap: () {},
+                    Row(
+                      children: [
+                        Counter(
+                          onChange: (qty) {
+                            quantity = qty;
+                          },
+                        ),
+                        const SizedBox(
+                          width: 20,
+                        ),
+                        Expanded(
+                          child: CustomButton(
+                            buttonColor: Colors.green[800],
+                            labelColor: Colors.white,
+                            label: "Add to Cart",
+                            onTap: () async {
+                              ManageCartBloc().add(
+                                AddManageCartEvent(
+                                  itemId: widget.foodDetails['id'],
+                                  quantity: quantity,
+                                ),
+                              );
+                              await showDialog(
+                                context: context,
+                                builder: (context) => CustomAlertDialog(
+                                  title: 'Item Added',
+                                  message:
+                                      'Item added to cart, open cart section and complete the order.',
+                                  content: Center(
+                                    child: Icon(
+                                      Icons.check_circle,
+                                      size: 150,
+                                      color: Colors.green[900],
+                                    ),
+                                  ),
+                                  primaryButtonLabel: 'Ok',
+                                ),
+                              );
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ),
+                      ],
                     )
                   ],
                 ),
@@ -150,7 +222,7 @@ class FoodDetailsScreen extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(200),
               child: CachedNetworkImage(
-                imageUrl: foodDetails['image_url'],
+                imageUrl: widget.foodDetails['image_url'],
                 fit: BoxFit.cover,
                 height: 250,
                 width: 250,

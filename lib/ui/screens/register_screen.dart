@@ -6,6 +6,7 @@ import 'package:restaurant_user/ui/widget/custom_alert_dialog.dart';
 import 'package:restaurant_user/ui/widget/custom_button.dart';
 import 'package:restaurant_user/ui/widget/custom_input_form_field.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:restaurant_user/util/value_validators.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -35,9 +36,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 showDialog(
                   context: context,
                   builder: (context) => const CustomAlertDialog(
-                    title: "Login Failed",
-                    message:
-                        'Please check your email and password and try again.',
+                    title: "REgister Failed",
+                    message: 'Please check your connection and try again.',
                     primaryButtonLabel: 'Ok',
                   ),
                 );
@@ -138,14 +138,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 controller: _nameController,
                                 labelText: 'Name',
                                 prefixIcon: Icons.person,
-                                validator: (value) {
-                                  if (value != null &&
-                                      value.trim().isNotEmpty) {
-                                    return null;
-                                  } else {
-                                    return "Please enter name";
-                                  }
-                                },
+                                validator: alphaNumericValidator,
                               ),
                               const SizedBox(
                                 height: 10,
@@ -155,15 +148,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 labelText: 'Phone',
                                 keyboardType: TextInputType.phone,
                                 prefixIcon: Icons.phone_android,
-                                validator: (value) {
-                                  if (value != null &&
-                                      value.trim().isNotEmpty &&
-                                      value.length == 10) {
-                                    return null;
-                                  } else {
-                                    return "Please enter phone number";
-                                  }
-                                },
+                                validator: phoneValidator,
                               ),
                               const SizedBox(
                                 height: 10,
@@ -172,14 +157,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 controller: _emailController,
                                 prefixIcon: Icons.email,
                                 labelText: 'Email',
-                                validator: (value) {
-                                  if (value != null &&
-                                      value.trim().isNotEmpty) {
-                                    return null;
-                                  } else {
-                                    return "Please enter an email";
-                                  }
-                                },
+                                validator: emailValidator,
                               ),
                               const SizedBox(
                                 height: 10,
@@ -189,14 +167,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 isObscure: isObscure,
                                 labelText: 'Password',
                                 prefixIcon: Icons.lock,
-                                validator: (value) {
-                                  if (value != null &&
-                                      value.trim().isNotEmpty) {
-                                    return null;
-                                  } else {
-                                    return "Please enter password";
-                                  }
-                                },
+                                validator: passwordValidator,
                                 suffixIcon: IconButton(
                                   onPressed: () {
                                     isObscure = !isObscure;

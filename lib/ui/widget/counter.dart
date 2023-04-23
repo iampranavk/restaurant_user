@@ -26,6 +26,7 @@ class _CounterState extends State<Counter> {
             if (count > 1) {
               count--;
             }
+            widget.onChange(count);
             setState(() {});
           },
           child: Padding(
@@ -51,6 +52,7 @@ class _CounterState extends State<Counter> {
           onTap: () {
             count++;
             setState(() {});
+            widget.onChange(count);
           },
           child: Padding(
             padding: const EdgeInsets.all(5.0),
