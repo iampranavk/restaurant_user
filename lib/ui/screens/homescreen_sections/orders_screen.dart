@@ -1,9 +1,14 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:restaurant_user/blocs/manage_orders/manage_orders_bloc.dart';
 import 'package:restaurant_user/ui/widget/custom_button.dart';
 import 'package:restaurant_user/ui/widget/custom_card.dart';
+import 'package:restaurant_user/ui/widget/custom_progress_indicator.dart';
 import 'package:restaurant_user/ui/widget/label_with_text.dart';
+
+import '../../widget/custom_alert_dialog.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -13,97 +18,145 @@ class OrdersScreen extends StatefulWidget {
 }
 
 class _OrdersScreenState extends State<OrdersScreen> {
-  String groupValue = 'ordered';
+  final ManageOrdersBloc manageOrdersBloc = ManageOrdersBloc();
+  String groupValue = 'pending';
+
+  void getOrders() {
+    manageOrdersBloc.add(GetAllManageOrdersEvent(status: groupValue));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    getOrders();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        title: Text(
-          'My Orders',
-          style: GoogleFonts.oswald(
-            textStyle: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                  color: Colors.green[800],
-                  fontWeight: FontWeight.w600,
-                ),
-          ),
-        ),
-        leading: IconButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          icon: Icon(
-            Icons.arrow_back_ios,
-            color: Colors.green[900]!,
-          ),
-        ),
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(
-                height: 10,
-              ),
-              CupertinoSlidingSegmentedControl<String>(
-                backgroundColor: Colors.white60,
-                thumbColor: Colors.green[200]!,
-                groupValue: groupValue,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 10,
-                ),
-                children: {
-                  'ordered': Text(
-                    'Ordered',
-                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                          color: Colors.black,
-                          fontWeight: FontWeight.w500,
-                        ),
-                  ),
-                  'completed': Text(
-                    'Completed',
-                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                          color: Colors.black,
-                          fontWeight: FontWeight.w500,
-                        ),
-                  ),
-                },
-                onValueChanged: (value) {
-                  groupValue = value!;
-                  setState(() {});
+    return BlocProvider<ManageOrdersBloc>.value(
+      value: manageOrdersBloc,
+      child: BlocConsumer<ManageOrdersBloc, ManageOrdersState>(
+        listener: (context, state) {
+          if (state is ManageOrdersFailureState) {
+            showDialog(
+              context: context,
+              builder: (context) => CustomAlertDialog(
+                title: 'Failure',
+                message: state.message,
+                primaryButtonLabel: 'Try Again',
+                primaryOnPressed: () {
+                  getOrders();
                 },
               ),
-              const Divider(
-                color: Colors.black54,
-                height: 20,
+            );
+          }
+        },
+        builder: (context, state) {
+          return Scaffold(
+            appBar: AppBar(
+              backgroundColor: Colors.white,
+              elevation: 0,
+              automaticallyImplyLeading: false,
+              title: Text(
+                'My Orders',
+                style: GoogleFonts.oswald(
+                  textStyle:
+                      Theme.of(context).textTheme.headlineSmall!.copyWith(
+                            color: Colors.green[800],
+                            fontWeight: FontWeight.w600,
+                          ),
+                ),
               ),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Wrap(
-                    runSpacing: 20,
-                    children: List<Widget>.generate(
-                      5,
-                      (index) => const OrderItem(),
+              leading: IconButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                icon: Icon(
+                  Icons.arrow_back_ios,
+                  color: Colors.green[900]!,
+                ),
+              ),
+            ),
+            body: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const SizedBox(
+                      height: 10,
                     ),
-                  ),
+                    CupertinoSlidingSegmentedControl<String>(
+                      backgroundColor: Colors.white60,
+                      thumbColor: Colors.green[200]!,
+                      groupValue: groupValue,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 10,
+                      ),
+                      children: {
+                        'pending': Text(
+                          'Ordered',
+                          style:
+                              Theme.of(context).textTheme.titleMedium!.copyWith(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                        ),
+                        'complete': Text(
+                          'Completed',
+                          style:
+                              Theme.of(context).textTheme.titleMedium!.copyWith(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                        ),
+                      },
+                      onValueChanged: (value) {
+                        groupValue = value!;
+                        setState(() {});
+                        getOrders();
+                      },
+                    ),
+                    const Divider(
+                      color: Colors.black54,
+                      height: 20,
+                    ),
+                    Expanded(
+                      child: state is ManageOrdersSuccessState
+                          ? state.orders.isNotEmpty
+                              ? ListView.separated(
+                                  itemBuilder: (context, index) => OrderItem(
+                                    orderDetails: state.orders[index],
+                                  ),
+                                  separatorBuilder: (context, index) =>
+                                      const SizedBox(height: 10),
+                                  itemCount: state.orders.length,
+                                )
+                              : const Center(
+                                  child: Text("No Orders"),
+                                )
+                          : const Center(
+                              child: CustomProgressIndicator(),
+                            ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
 }
 
 class OrderItem extends StatelessWidget {
+  final dynamic orderDetails;
   const OrderItem({
     super.key,
+    required this.orderDetails,
   });
 
   @override
@@ -134,50 +187,40 @@ class OrderItem extends StatelessWidget {
               ],
             ),
             const Divider(
-              height: 20,
+              height: 30,
               color: Colors.black54,
             ),
             Wrap(
               runSpacing: 10,
               children: List<Widget>.generate(
-                2,
-                (index) => const ProductListItem(),
+                orderDetails['items'].length,
+                (index) => ProductListItem(
+                  orderItemDetails: orderDetails['items'][index],
+                ),
               ),
             ),
             const Divider(
-              height: 20,
+              height: 30,
               color: Colors.black54,
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Expanded(
-                  child: LabelWithText(
-                    label: 'Total',
-                    text: '₹4000',
-                  ),
+                Text(
+                  'Total',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey,
+                      ),
                 ),
-                Expanded(
-                  child: Text(
-                    'Pending',
-                    style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                          color: Colors.black,
-                          fontWeight: FontWeight.w600,
-                        ),
-                    textAlign: TextAlign.end,
-                  ),
-                )
+                Text(
+                  '₹${orderDetails['total'].toString()}',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                ),
               ],
-            ),
-            const Divider(
-              height: 20,
-              color: Colors.black54,
-            ),
-            CustomButton(
-              buttonColor: Colors.green[800],
-              labelColor: Colors.white,
-              onTap: () {},
-              label: 'Pay Now',
             ),
           ],
         ),
@@ -187,8 +230,10 @@ class OrderItem extends StatelessWidget {
 }
 
 class ProductListItem extends StatelessWidget {
+  final dynamic orderItemDetails;
   const ProductListItem({
     super.key,
+    required this.orderItemDetails,
   });
 
   @override
@@ -199,7 +244,7 @@ class ProductListItem extends StatelessWidget {
         ClipRRect(
           borderRadius: BorderRadius.circular(100),
           child: Image.network(
-            'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=481&q=80',
+            orderItemDetails['food_item']['image_url'],
             width: 50,
             height: 50,
             fit: BoxFit.fill,
@@ -212,7 +257,7 @@ class ProductListItem extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Pizza',
+              orderItemDetails['food_item']['name'],
               style: Theme.of(context).textTheme.titleMedium!.copyWith(
                     color: Colors.black,
                     fontWeight: FontWeight.w600,
@@ -222,7 +267,7 @@ class ProductListItem extends StatelessWidget {
               height: 2,
             ),
             Text(
-              '5',
+              orderItemDetails['quantity'].toString(),
               style: Theme.of(context).textTheme.titleMedium!.copyWith(
                     color: Colors.black,
                     fontWeight: FontWeight.w600,
@@ -235,7 +280,7 @@ class ProductListItem extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               Text(
-                '₹2000',
+                '₹${orderItemDetails['price'].toString()}',
                 style: Theme.of(context).textTheme.titleMedium!.copyWith(
                       color: Colors.black,
                       fontWeight: FontWeight.w600,

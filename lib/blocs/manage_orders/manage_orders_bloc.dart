@@ -23,6 +23,7 @@ class ManageOrdersBloc extends Bloc<ManageOrdersEvent, ManageOrdersState> {
           List<dynamic> temp = await queryTable
               .select()
               .eq('user_id', supabaseClient.auth.currentUser!.id)
+              .eq('status', event.status)
               .order('created_at');
 
           List<Map<String, dynamic>> orders =
@@ -53,6 +54,8 @@ class ManageOrdersBloc extends Bloc<ManageOrdersEvent, ManageOrdersState> {
                   .single();
             }
           }
+
+          Logger().w(orders);
 
           emit(ManageOrdersSuccessState(orders: orders));
         } else if (event is CreateOrdersEvent) {
