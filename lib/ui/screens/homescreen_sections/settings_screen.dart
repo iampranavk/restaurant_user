@@ -35,7 +35,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 SettingsCard(
                   icon: Icons.reviews_outlined,
-                  label: 'Suggestions',
+                  label: 'Complaints & Suggestions',
                   onTap: () {
                     Navigator.push(
                       context,

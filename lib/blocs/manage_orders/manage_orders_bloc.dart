@@ -35,22 +35,22 @@ class ManageOrdersBloc extends Bloc<ManageOrdersEvent, ManageOrdersState> {
                 .eq('order_id', orders[i]['id']);
 
             for (int j = 0; j < orders[i]['items'].length; j++) {
-              orders[i]['items'][i]['food_item'] = await foodItemsTable
+              orders[i]['items'][j]['food_item'] = await foodItemsTable
                   .select('*')
-                  .eq('id', orders[i]['items'][i]['food_item_id'])
+                  .eq('id', orders[i]['items'][j]['food_item_id'])
                   .single();
-              orders[i]['items'][i]['food_item']['category'] =
+              orders[i]['items'][j]['food_item']['category'] =
                   await foodCategoriesTable
                       .select('*')
                       .eq(
                           'id',
-                          orders[i]['items'][i]['food_item']
+                          orders[i]['items'][j]['food_item']
                               ['food_category_id'])
                       .single();
 
-              orders[i]['items'][i]['food_item']['type'] = await foodTypesTable
+              orders[i]['items'][j]['food_item']['type'] = await foodTypesTable
                   .select('*')
-                  .eq('id', orders[i]['items'][i]['food_item']['food_type_id'])
+                  .eq('id', orders[i]['items'][j]['food_item']['food_type_id'])
                   .single();
             }
           }

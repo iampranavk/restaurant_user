@@ -34,9 +34,9 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> {
           elevation: 0,
           automaticallyImplyLeading: false,
           title: Text(
-            'Suggestions',
+            'Complaints & Suggestions',
             style: GoogleFonts.oswald(
-              textStyle: Theme.of(context).textTheme.headlineSmall!.copyWith(
+              textStyle: Theme.of(context).textTheme.titleMedium!.copyWith(
                     color: Colors.green[800],
                     fontWeight: FontWeight.w600,
                   ),
