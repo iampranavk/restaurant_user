@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:restaurant_user/ui/widget/custom_card.dart';
+import 'package:restaurant_user/ui/widget/custom_progress_indicator.dart';
 
 class CustomButton extends StatelessWidget {
   final String label;
@@ -43,25 +44,7 @@ class CustomButton extends StatelessWidget {
                 : MainAxisAlignment.center,
             children: isLoading
                 ? [
-                    Transform.scale(
-                      scale: 0.7,
-                      child: CircularProgressIndicator(
-                        color: labelColor,
-                        backgroundColor: labelColor?.withOpacity(.2),
-                      ),
-                    ),
-                    // SizedBox(
-                    //   width: 50,
-                    //   child: ClipRRect(
-                    //     borderRadius: BorderRadius.circular(30),
-                    //     child: Center(
-                    //       child: CircularProgressIndicator(
-                    //         color: labelColor,
-                    //         backgroundColor: labelColor?.withOpacity(.2),
-                    //       ),
-                    //     ),
-                    //   ),
-                    // )
+                    const CustomProgressIndicator(),
                   ]
                 : [
                     Text(

@@ -45,6 +45,7 @@ class _CounterState extends State<Counter> {
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
+                  fontSize: widget.size,
                 ),
           ),
         ),
